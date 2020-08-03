@@ -1,0 +1,84 @@
+<!DOCTYPE HTML>
+
+<html>
+   <head>		
+      <script src="js/chart.min.js"></script>
+   </head>
+   
+   <body>
+	  <h1>WebSockets demo</h1>	  
+		
+		<div class="chart-container" style="position: relative; height:20vh; width:40vw">
+    		<canvas id="myChart"></canvas>
+		</div>
+		
+		
+
+      <script type = "text/javascript">
+
+				data = {
+					datasets: [{
+						data: [100,0],
+					backgroundColor: [
+						'rgba(0, 255, 0, 0.6)',
+						'rgba(255, 0, 0, 0.6)'
+					],
+					borderColor: [
+						'rgba(0, 255, 0, 1.0)',
+						'rgba(255, 0, 0, 1.0)'
+					],
+					borderWidth: 1												
+					}],
+					labels: [
+						'Success',
+						'Error'
+					]
+				};         
+		 
+            
+            if ("WebSocket" in window) {             
+               
+               // Let us open a web socket
+               var ws = new WebSocket("ws://__HOSTNAME__:__PORT__/log");
+				
+               ws.onopen = function() {                  
+                  ws.send("Hello log");
+               };
+				
+               ws.onmessage = function (evt) { 
+                  var received_msg = evt.data;
+				  
+				  
+				  
+
+				var percent = parseInt(received_msg);		
+				
+				data.datasets[0].data=[percent,100-percent]
+					
+
+				  var ctx = document.getElementById('myChart');
+					var myDoughnutChart = new Chart(ctx, {
+						type: 'doughnut',
+						data: data					
+					});			  
+               };
+				
+               ws.onclose = function() { 
+                  
+                  // websocket is closed.
+                  alert("Connection is closed..."); 
+               };
+            } else {
+              
+               // The browser doesn't support WebSocket
+               alert("WebSocket NOT supported by your Browser!");
+            }
+		
+		
+		
+		 
+      </script>
+
+      
+   </body>
+</html>

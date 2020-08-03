@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+
+	<flow name="broadcast-value" doc:id="2322db30-1fce-4102-92c0-7e6c07d8cf7e" >
+		<http:listener doc:name="Listener" doc:id="21b354b7-7609-4846-83ea-4f324351280a" config-ref="HTTP_Listener_config" path="/multicast">
+			<http:error-response>
+				<http:body><![CDATA[#[payload]]]></http:body>
+			</http:error-response>
+		</http:listener>
+		<set-payload value="#[max([min([attributes.queryParams.value as Number,100]),0])]" doc:name="Set Payload" doc:id="bdf0bb63-2291-49ce-b4eb-cfc5afdd4893" />
+		<flow-ref doc:name="broadcastMessage" doc:id="699688f8-5901-44f7-98d8-5cf3b748ca9a" name="broadcastMessage"/>
+		<ee:transform doc:name="Transform Message" doc:id="e960e8f7-6487-4baf-b162-c8c3651f84cf" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	status: "message broadcasted"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="dce88083-41c6-49bc-aaa6-7dde5b6ee8ea" >
+				<ee:transform doc:name="Transform Message" doc:id="773487c1-dc12-4523-92d7-3e30b24e4d0f">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	status: "An ERROR occurred !!!"
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-propagate>
+		</error-handler>
+	
+</flow>	
+	
+</mule>

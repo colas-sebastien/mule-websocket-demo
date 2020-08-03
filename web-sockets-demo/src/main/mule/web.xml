@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+
+	<flow name="chartjs" doc:id="d5002221-af46-4ea5-a259-07cc4b42b25b" >
+		<http:listener doc:name="GET /js/chart.min.js" doc:id="92c1923d-603d-430b-93da-cc79541470bc" path="/js/chart.min.js" allowedMethods="GET" config-ref="HTTP_Listener_config"/>
+		<ee:transform doc:name="Transform Message" doc:id="064b9d51-c5bb-4a86-84a8-4f9692f3f569" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+readUrl("classpath://js/chart.min.js", "text/plain")]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="html" doc:id="c9f3238e-84c3-47fb-acba-64c139706535" >
+		<http:listener doc:name="GET /" doc:id="be3c7a3b-a477-45e1-95e1-1b8a09c8a877" path="/" config-ref="HTTP_Listener_config">
+			<http:response >
+				<http:headers ><![CDATA[#[output applicaton/java
+---
+{
+	"content-type" : "text/html"
+}]]]></http:headers>
+			</http:response>
+		</http:listener>
+		<ee:transform doc:name="Transform Message" doc:id="085f4884-d24b-4763-82e7-5b03fa2af573" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+readUrl("classpath://index.html", "text/plain") as String 
+		replace /__HOSTNAME__/ with(Mule::p('ws.external.host'))
+		replace /__PORT__/ with(Mule::p('ws.external.port'))		
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>

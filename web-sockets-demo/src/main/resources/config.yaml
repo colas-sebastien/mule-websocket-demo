@@ -1,0 +1,9 @@
+http:
+  port: "8081"
+
+ws:
+  port: "8091"
+  
+ws.external:
+  host: "localhost"
+  port: "8091"

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:websocket="http://www.mulesoft.org/schema/mule/websocket" 
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/websocket 
+		http://www.mulesoft.org/schema/mule/websocket/current/mule-websocket.xsd
+		http://www.mulesoft.org/schema/mule/http 
+		http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd 
+		http://www.mulesoft.org/schema/mule/core 
+		http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+	<configuration-properties doc:name="Configuration properties" doc:id="25323a64-f9a7-47f3-b276-1344b8c6941c" file="config.yaml" />		
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="fa449755-0288-4bfe-a073-20ef99639075" >
+		<http:listener-connection host="0.0.0.0" port="${http.port}" />
+	</http:listener-config>
+	<websocket:config name="WebSockets_Config" doc:name="WebSockets Config" doc:id="5200c3b7-d2b3-4e98-8b69-210e3d3b2508" >
+		<websocket:connection >
+			<websocket:server-settings listenerConfig="WS_HTTP_Listener_config" />
+		</websocket:connection>
+	</websocket:config>
+	<http:listener-config name="WS_HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="23e7fc1b-f6bb-44f0-ae37-1edd9bb00901" >
+		<http:listener-connection host="0.0.0.0" port="${ws.port}" />
+	</http:listener-config>
+
+
+</mule>
