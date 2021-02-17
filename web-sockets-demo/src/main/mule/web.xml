@@ -39,4 +39,25 @@ readUrl("classpath://index.html", "text/plain") as String
 			</ee:message>
 		</ee:transform>
 	</flow>
+	<flow name="editor" doc:id="f07900c1-386a-4d4e-afda-5e613a7738b9" >
+		<http:listener doc:name="GET /editor" doc:id="22377870-ef16-4d79-8a91-36e42aa8ebb3" config-ref="HTTP_Listener_config" path="/editor">
+			<http:response >
+				<http:headers ><![CDATA[#[output applicaton/java
+---
+{
+	"content-type" : "text/html"
+}]]]></http:headers>
+			</http:response>
+		</http:listener>
+		<ee:transform doc:name="Transform Message" doc:id="9de42b6b-f8d6-42d2-b1bc-2c4e6066a20c" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+readUrl("classpath://editor.html", "text/plain") as String 
+		replace /__HOSTNAME__/ with(Mule::p('ws.external.host'))
+		replace /__PORT__/ with(Mule::p('ws.external.port')) 		]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
 </mule>

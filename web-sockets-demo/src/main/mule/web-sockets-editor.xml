@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule 
+
+	xmlns:os="http://www.mulesoft.org/schema/mule/os" 
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:java="http://www.mulesoft.org/schema/mule/java"
+	xmlns:scripting="http://www.mulesoft.org/schema/mule/scripting" 
+	xmlns:websocket="http://www.mulesoft.org/schema/mule/websocket" 
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" 
+	xmlns="http://www.mulesoft.org/schema/mule/core" 
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core 
+		http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/http 
+		http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+		http://www.mulesoft.org/schema/mule/websocket 
+		http://www.mulesoft.org/schema/mule/websocket/current/mule-websocket.xsd
+		http://www.mulesoft.org/schema/mule/scripting 
+		http://www.mulesoft.org/schema/mule/scripting/current/mule-scripting.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd">
+
+	<sub-flow name="editorBroadcastMessage" doc:id="e2ba098e-6697-4465-a853-4e1fa3eab127" >
+		<os:store doc:name="Store" doc:id="e81a8113-d5e6-4c29-9c4c-b36ce346cdd0" key="#[payload.ID]"/>
+		<websocket:broadcast doc:name="Broadcast" doc:id="f3dbcd77-a6ca-482d-8c7e-3cc2d2704d66" config-ref="WebSockets_Config" path="/editor" groups="#[[payload.ID]]">
+		</websocket:broadcast>
+	</sub-flow>
+	<flow name="editorOnNewConnection" doc:id="74cf9a7e-e0af-4f13-a301-062a51e39690" >
+		<websocket:on-inbound-connection doc:name="On New Inbound Connection" doc:id="bfa78e1d-abae-491f-aa21-5dbf5100fc99" config-ref="WebSockets_Config" path="/editor"/>
+		<logger level="INFO" doc:name="Logger" doc:id="c6c428e1-0643-4a44-bdcf-1d8ab257214d" message='#["New Web Socket " ++ attributes.socketId]' />
+	</flow>
+	<flow name="editorOnNewMessage" doc:id="60c0c776-0055-4845-8224-1fb52e5b9343" >
+		<websocket:inbound-listener doc:name="On New Inbound Message" doc:id="b79a69ab-08b3-4a57-9839-5e34b7cef638" config-ref="WebSockets_Config" path="/editor"/>
+		<logger level="INFO" doc:name="Logger" doc:id="0edac114-0a4d-4de6-9e99-754ea7a3786a" message='#[output text/plain --- "Web Socket " ++ attributes.socketId ++ " message: " ++ payload]' />
+		<set-variable value="#[attributes.socketId]" doc:name="socketId" doc:id="d06f46d7-9f3f-4b5a-931a-9fe149657b8a" variableName="socketId"/>
+		<ee:transform doc:name="Transform Message" doc:id="e18dafb2-22b5-4324-b6c1-023822bfdecd" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+read(payload,"application/json")]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>		
+		<choice doc:name="Choice" doc:id="448fe229-b283-4da3-a01f-371571e7d56a" >			
+			<when expression='#[(payload.ID default "") == ""]'>
+				<logger level="WARN" doc:name="Logger" doc:id="a01f20c8-5e89-48ff-bb61-48c12e34a9c9" message='#["No message ID for socket: " ++ vars.socketId]'/>
+			</when>		
+			<when expression='#[(payload.message default "") != ""]'>
+				<flow-ref doc:name="editorBroadcastMessage" doc:id="cc416afe-8c7f-4fa8-a8fc-199927d5db91" name="editorBroadcastMessage" />
+			</when>			
+			<otherwise >
+				<websocket:subscribe-groups doc:name="Subscribe groups" doc:id="12d86d86-7b92-4619-b3aa-613d24545685" config-ref="WebSockets_Config" groups="#[[payload.ID]]" socketId="#[vars.socketId]"/>
+				<os:retrieve doc:name="Retrieve" doc:id="a58706c1-dfb8-42c6-9815-1d7c82c214b8" key="#[payload.ID]">
+					<os:default-value ><![CDATA[#[""]]]></os:default-value>
+				</os:retrieve>
+				<websocket:send doc:name="Send" doc:id="c727173d-7b59-4010-885e-7405bd6189cf" config-ref="WebSockets_Config" socketId="#[vars.socketId]"/>
+			</otherwise>
+		</choice>
+	</flow>
+	<flow name="editorOnConnectionClosed" doc:id="f893b2d6-e1af-4ec7-968a-5a2a5656fcaf" >
+		<websocket:on-socket-closed doc:name="On Socket Closed" doc:id="7a62ebbe-eb56-453c-bb4a-1ff755ca8134" config-ref="WebSockets_Config" path="/editor"/>
+		<logger level="INFO" doc:name="Logger" doc:id="ee4442a0-88a7-4eb8-a007-6d75f7e63887" message='#["Web Socket " ++ attributes.socketId ++ " closed"]'/>
+	</flow>
+	<flow name="editorPing" doc:id="07861f19-000d-4a6b-80a8-19c6871381d8" >
+		<scheduler doc:name="Scheduler" doc:id="f2cabcd9-33ea-46b1-b6ee-32daf9400662" >
+			<scheduling-strategy >
+				<fixed-frequency frequency="2" timeUnit="MINUTES"/>
+			</scheduling-strategy>
+		</scheduler>
+		<websocket:broadcast doc:name="Broadcast" doc:id="13c8f148-1350-482f-b64a-69b6a802cc3c" config-ref="WebSockets_Config" path="/editor">
+			<websocket:content ><![CDATA[#[output text/plain
+---
+'{"action":"ping"}']]]></websocket:content>
+		</websocket:broadcast>
+	</flow>
+
+</mule>
