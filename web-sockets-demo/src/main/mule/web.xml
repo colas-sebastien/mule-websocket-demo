@@ -60,4 +60,23 @@ readUrl("classpath://editor.html", "text/plain") as String
 			</ee:message>
 		</ee:transform>
 	</flow>
+	<flow name="logo" doc:id="6a3c7e1d-f88f-4cda-a595-67c44dec0663" >
+		<http:listener doc:name="/img/logo.png" doc:id="5ef4c5c0-dbae-4e1d-8985-e67888dad2f6" config-ref="HTTP_Listener_config" path="/img/logo.png" >
+			<http:response >
+				<http:headers ><![CDATA[#[output applicaton/java
+---
+{
+	"content-type" : "image/png"
+}]]]></http:headers>
+			</http:response>
+		</http:listener>
+		<ee:transform doc:name="Transform Message" doc:id="6ed20bbd-7c77-4832-a786-09bd79240c71" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+readUrl("classpath://img/logo.png", "application/octet-stream")	]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
 </mule>

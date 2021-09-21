@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <mule 
-
 	xmlns:os="http://www.mulesoft.org/schema/mule/os" 
 	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
 	xmlns:java="http://www.mulesoft.org/schema/mule/java"
@@ -21,7 +19,6 @@ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
 		http://www.mulesoft.org/schema/mule/scripting/current/mule-scripting.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
 http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd">
-
 	<sub-flow name="editorBroadcastMessage" doc:id="e2ba098e-6697-4465-a853-4e1fa3eab127" >
 		<os:store doc:name="Store" doc:id="e81a8113-d5e6-4c29-9c4c-b36ce346cdd0" key="#[payload.ID]"/>
 		<websocket:broadcast doc:name="Broadcast" doc:id="f3dbcd77-a6ca-482d-8c7e-3cc2d2704d66" config-ref="WebSockets_Config" path="/editor" groups="#[[payload.ID]]">
